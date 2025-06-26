@@ -1,42 +1,124 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './styles.css';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
 
-const App = () => {
+const firebaseConfig = {
+  apiKey: "AIzaSyBNycgqh3wSyKCPeAUIpvIbTGpgqM8aUJI",
+  authDomain: "team-task-dashboard-188fd.firebaseapp.com",
+  projectId: "team-task-dashboard-188fd",
+  storageBucket: "team-task-dashboard-188fd.appspot.com",
+  messagingSenderId: "830092054067",
+  appId: "1:830092054067:web:686d101752bf9b39f69d46"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+function App() {
+  const [tasks, setTasks] = useState([]);
+  const [monthlyTasks, setMonthlyTasks] = useState([]);
+  const [yearlyTasks, setYearlyTasks] = useState([]);
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      const querySnapshot = await getDocs(collection(db, "tasks"));
+      const tasksData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setTasks(tasksData);
+      setMonthlyTasks(tasksData.filter(task => task.period === 'monthly'));
+      setYearlyTasks(tasksData.filter(task => task.period === 'yearly'));
+    };
+
+    fetchTasks();
+  }, []);
+
+  const calculateStats = (tasks) => {
+    const handledByStats = {};
+    const categoryStats = {};
+    const frequencyStats = {};
+
+    tasks.forEach(task => {
+      handledByStats[task.handledBy] = (handledByStats[task.handledBy] || 0) + 1;
+      categoryStats[task.category] = (categoryStats[task.category] || 0) + 1;
+      frequencyStats[task.frequency] = (frequencyStats[task.frequency] || 0) + 1;
+    });
+
+    const total = tasks.length;
+
+    const calculatePercentage = (stat) =>
+      Object.fromEntries(Object.entries(stat).map(([key, value]) => [key, ((value / total) * 100).toFixed(1)]));
+
+    return {
+      handledBy: calculatePercentage(handledByStats),
+      category: calculatePercentage(categoryStats),
+      frequency: calculatePercentage(frequencyStats),
+    };
+  };
+
+  const monthlyStats = calculateStats(monthlyTasks);
+  const yearlyStats = calculateStats(yearlyTasks);
+
   return (
-    <div className="min-h-screen bg-gray-100 p-6 font-sans">
-      <header className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">📊 Finance Dashboard</h1>
-        <p className="text-gray-500">Track your team's monthly and yearly finance activity.</p>
-      </header>
-      <main className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-xl font-semibold mb-2">Team Member Performance</h2>
-          <p>Arun: 0.0%</p>
-          <p>Rohit: 0.0%</p>
-          <p>Shekar: 0.0%</p>
-          <p>Sudheer: 0.0%</p>
-        </div>
-        <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-xl font-semibold mb-2">Tasks by Category (Monthly)</h2>
-          <ul className="list-disc list-inside">
-            <li>Operations – 15 (48.4%)</li>
-            <li>Statutory – 5 (16.1%)</li>
-            <li>Audit – 5 (16.1%)</li>
-            <li>Reports – 4 (12.9%)</li>
-            <li>Expense Schedules – 2 (6.5%)</li>
+    <div style={{ padding: '20px' }}>
+      <h1>Finance Dashboard</h1>
+
+      <section>
+        <h2>Monthly Tasks</h2>
+        <div>
+          <h3>Handled By</h3>
+          <ul>
+            {Object.entries(monthlyStats.handledBy).map(([name, percentage]) => (
+              <li key={name}>{name}: {percentage}%</li>
+            ))}
           </ul>
         </div>
-        <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-xl font-semibold mb-2">Tasks by Frequency (Monthly)</h2>
-          <ul className="list-disc list-inside">
-            <li>Daily – 15 (48.4%)</li>
-            <li>Monthly – 12 (38.7%)</li>
-            <li>Weekly – 4 (12.9%)</li>
+        <div>
+          <h3>Category</h3>
+          <ul>
+            {Object.entries(monthlyStats.category).map(([cat, percentage]) => (
+              <li key={cat}>{cat}: {percentage}%</li>
+            ))}
           </ul>
         </div>
-      </main>
+        <div>
+          <h3>Frequency</h3>
+          <ul>
+            {Object.entries(monthlyStats.frequency).map(([freq, percentage]) => (
+              <li key={freq}>{freq}: {percentage}%</li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <h2>Yearly Tasks</h2>
+        <div>
+          <h3>Handled By</h3>
+          <ul>
+            {Object.entries(yearlyStats.handledBy).map(([name, percentage]) => (
+              <li key={name}>{name}: {percentage}%</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3>Category</h3>
+          <ul>
+            {Object.entries(yearlyStats.category).map(([cat, percentage]) => (
+              <li key={cat}>{cat}: {percentage}%</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3>Frequency</h3>
+          <ul>
+            {Object.entries(yearlyStats.frequency).map(([freq, percentage]) => (
+              <li key={freq}>{freq}: {percentage}%</li>
+            ))}
+          </ul>
+        </div>
+      </section>
     </div>
   );
-};
+}
 
 export default App;
