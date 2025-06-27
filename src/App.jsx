@@ -340,17 +340,3 @@ const App = () => {
 
 export default App;
 
-    frequency: "Monthly",
-    category: "Statutory",
-    dueDate: "15th",
-    commitment: "14th"
-  },
-  {
-    title: "Quarterly TDS Returns",
-    handledBy: "Sudheer",
-    reviewedBy: "Rohit",
-    frequency: "Quarterly",
-    category: "Statutory",
-    dueDate: "30th Jul/Oct/Jan/May",
-    commitment: "15th Jul/Oct/Jan/May"
-  },
