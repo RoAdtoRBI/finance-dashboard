@@ -273,7 +273,8 @@ const StatCard = ({ title, data }) => (
     <ul className="text-sm space-y-1">
       {Object.entries(data).map(([key, val]) => (
         <li key={key} className="flex justify-between border-b py-1">
-          <span>{key}</span><span>{val} task{val > 1 ? "s" : ""}</span>
+          <span>{key}</span>
+          <span>{`${val} task${val > 1 ? "s" : ""}`}</span>
         </li>
       ))}
     </ul>
